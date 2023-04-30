@@ -1,1 +1,203 @@
-nzax n
+********************************  Push button_LEDs_Class.ino  ***************************************
+
+
+/ This program demonstrates the use of multiple classes and header files to control LEDs and implement a debounce method for a push button.
+
+// Import necessary header files
+#include "Led.h"
+#include "PBClass.h"
+
+// Initialize global variables
+int buttonPressed = 0; // Stores the number of times the button has been pressed
+int chosenLed; // Stores the selected LED number
+
+// Create instances of the Led class for each LED
+Led Red(12);
+Led Blue(11);
+Led Green(10);
+Led Yellow(9);
+
+// Create an instance of the PBClass class for the button
+PBClass Button(13);
+
+void setup() {
+// Initialize serial communication at a baud rate of 9600
+Serial.begin(9600);
+
+// Initialize each LED
+Red.init();
+Blue.init();
+Green.init();
+Yellow.init();
+
+// Initialize the button
+Button.init();
+}
+
+void loop() {
+// Get the number of times the button has been pressed
+chosenLed = Button.howManyPressed();
+
+// Use a switch statement to control the LEDs based on the button press count
+switch (chosenLed) {
+case 1:
+Red.on(); // Turn on the Red LED
+Blue.off(); // Turn off the Blue LED
+Green.off(); // Turn off the Green LED
+Yellow.off(); // Turn off the Yellow LED
+break;
+
+case 2:
+  Red.off();     // Turn off the Red LED
+  Blue.on();     // Turn on the Blue LED
+  Green.off();   // Turn off the Green LED
+  Yellow.off();  // Turn off the Yellow LED
+  break;
+
+case 3:
+  Red.off();     // Turn off the Red LED
+  Blue.off();    // Turn off the Blue LED
+  Green.on();    // Turn on the Green LED
+  Yellow.off();  // Turn off the Yellow LED
+  break;
+
+case 4:
+  Red.off();              // Turn off the Red LED
+  Blue.off();             // Turn off the Blue LED
+  Green.off();            // Turn off the Green LED
+  Yellow.on();            // Turn on the Yellow LED
+  Button.howManyReset();  // Reset the button press count
+  break;
+}
+
+// Print the selected LED to the serial monitor
+Serial.println(chosenLed);
+}
+
+******************************** PushbuttonClass.cpp ***************************************
+
+
+#include "PBClass.h"  // Includes the "PBClass" header
+
+PBClass::PBClass(int pin) {  // Class constructor that takes in the pin number as an argument
+  this->pin = pin;           // Assigns the private member variable 'pin' to the value passed to the constructor
+  pressed = 0;               // Initializes 'pressed' to 0
+  thisMany = 0;              // Initializes 'thisMany' to 0
+}
+
+void PBClass::init() {         // Initializes the pin as INPUT_PULLUP
+  pinMode(pin, INPUT_PULLUP);  
+}
+
+void PBClass::readState() {    // Reads the current state of the pin
+  state = digitalRead(pin);    
+}
+
+int PBClass::isPressed() {     // Checks if the button is pressed once
+  readState();                // Reads the current state of the pin
+  
+  if (!state && !pressed) {   // If the button is currently pressed and wasn't pressed before
+    Serial.println("The button has been pressed");  // Prints a message to the serial monitor
+    pressed = 1;              // Set the 'pressed' flag to 1
+  } else if (state && pressed) {  // If the button is not pressed and was pressed before
+    pressed = 0;              // Set the 'pressed' flag to 0
+  }
+}
+
+int PBClass::howManyPressed() {   // Checks how many times the button was pressed
+  readState();                   // Reads the current state of the pin
+  
+  if (!state && !pressed) {      // If the button is currently pressed and wasn't pressed before
+    pressed = 1;                 // Set the 'pressed' flag to 1
+    thisMany = thisMany + 1;     // Increment the 'thisMany' counter by 1
+    return thisMany;             // Return the number of times the button was pressed
+  } else if (state && pressed) { // If the button is not pressed and was pressed before
+    pressed = 0;                 // Set the 'pressed' flag to 0
+  }
+}
+
+void PBClass::howManyReset() {    // Resets the counter for the number of button presses
+  thisMany = 0;                  // Sets 'thisMany' back to 0
+  
+}
+
+******************************** PushbuttonClass.h ***************************************
+
+
+#ifndef PBCLASS_H  // If the "PBClass.h" is not defined:
+#define PBCLASS_H  // Define the "PBClass.h"
+
+#include <Arduino.h>  // Includes the "Arduino" header in the code
+
+class PBClass {  // Creates a class called "PBClass"
+
+private:      // The private access
+  int pin;    // Integer indicating the pin number
+  int state;  // Integer indicating the state of the pin
+  int pressed;  // Integer indicating if the button has been pressed
+  int thisMany;  // Integer indicating the number of times the button has been pressed
+
+public:              // The public access
+  PBClass(){};       // The default constructor
+  PBClass(int pin);  // The constructor of the class
+
+  void init();       // Initializes the pin as a pullup input
+  void readState();  // Reads the state of the button
+  int isPressed();   // Checks if the button has been pressed and returns 1 if it has
+  int howManyPressed();  // Checks how many times the button has been pressed and returns the value
+  void howManyReset();   // Resets the count of how many times the button has been pressed to 0
+};
+
+#endif  // End the if statement
+
+
+
+
+******************************** LEDs.cpp ***************************************
+
+
+#include "Led.h"  // "" means that the .h file is in the same folder as this file
+
+Led::Led(int pin) {
+  _pin = pin;
+}
+
+void Led::init() { // initializes the "_pin' of the led that is being created in the ino file.
+  pinMode(_pin, OUTPUT);
+}
+
+void Led::on() { // Method that turns the Led on
+  digitalWrite(_pin, 1);
+}
+
+void Led::off() { // Method that urns the Led off
+  digitalWrite(_pin, 0);
+}
+
+
+
+******************************** LEDs.h ***************************************
+
+#ifndef ledclass_H
+#define ledclass_H
+//define if is not defined yet
+
+#include<Arduino.h> //include Arduino library
+
+class LED { //create a class for LED
+  private: //hide and protect the variables here
+    int pin; //variable in which the pin number in use will be saved
+
+  public:
+    LED(){}; //default costructor
+    LED(int pinNumber); //constructor that receives the pin number
+    
+    void init(); //method to initialize the LED
+
+    void ON();//turn ON the LED
+
+    void OFF();//turn OFF the LED
+
+};
+
+#endif
