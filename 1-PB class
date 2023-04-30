@@ -1,0 +1,68 @@
+************************* Push button_Class.ino ***********************************************
+
+
+#include "PB.h" // Include PB header file
+PB button(13); // Create an instance of the PB class connected to pin 2
+
+void setup() {
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (button.isPressed()) { // Check if button is pressed
+    Serial.print("Button state is :  ");
+    Serial.println(digitalRead(13));
+  }
+ 
+}
+
+************************* Push button.cpp ***********************************************
+
+
+#include "PB.h" // Include PB header file
+
+PB::PB(int pin) { // Constructor implementation
+  _pin = pin;
+  _lastState = false;
+  _lastChangeTime = 0;
+  _debounceDelay = 50;
+  pinMode(_pin, INPUT_PULLUP); // Set button pin to input mode with pull-up resistor
+}
+
+bool PB::isPressed() { // isPressed method implementation
+  bool currentState = !digitalRead(_pin); // Read current state of button pin
+  unsigned long currentTime = millis(); // Get current time
+  if (currentState != _lastState) { // Button state has changed
+    _lastChangeTime = currentTime; // Record time of state change
+  }
+  if ((currentTime - _lastChangeTime) > _debounceDelay) { // Enough time has passed since last state change
+    if (currentState != _lastState) { // Button state has changed
+      _lastState = currentState; // Record new button state
+      return _lastState; // Return new button state
+    }
+  }
+  return false; // Button is not pressed
+}
+
+
+
+************************* Push button.h ************************************************
+
+
+#ifndef PB_h // Defines the file as a header file
+#define PB_h 
+
+#include <Arduino.h> // Include Arduino header file
+
+class PB { // Definition of the PB class
+  public:
+    PB(int pin); // Constructor for creating a PB instance with specified pin
+    bool isPressed(); // Method for checking if the button is pressed
+  private:
+    int _pin; // The pin number the button is connected to
+    bool _lastState; // The last recorded state of the button 
+    unsigned long _lastChangeTime; // The time when the button state last changed
+    unsigned long _debounceDelay; // The amount of time to wait for debounce (to eliminate button bouncing)
+};
+
+#endif 
